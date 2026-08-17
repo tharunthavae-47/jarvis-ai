@@ -1,22 +1,28 @@
 import OpenAI from "openai"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 export async function askJarvis(message: string) {
-  const response = await openai.responses.create({
-    model: "gpt-5",
-    instructions: `
-Du bist JARVIS, ein persönlicher KI-Assistent.
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY fehlt in den Vercel Environment Variables.")
+  }
 
-Sprich Deutsch, wenn der Benutzer Deutsch spricht.
-Antworte freundlich, intelligent und eher kurz.
-Du bist wie der Assistent aus Iron Man, aber ohne zu behaupten,
-dass du wirklich JARVIS bist.
-`,
-    input: message,
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
   })
 
-  return response.output_text
+  try {
+    const response = await openai.responses.create({
+      model: "gpt-5",
+      instructions:
+        "Du bist JARVIS, ein freundlicher persönlicher KI-Assistent. Antworte auf Deutsch.",
+      input: message,
+    })
+
+    return response.output_text
+  } catch (error: any) {
+    console.error("OPENAI ERROR:", error)
+
+    throw new Error(
+      error?.message || "OpenAI Anfrage fehlgeschlagen."
+    )
+  }
 }
